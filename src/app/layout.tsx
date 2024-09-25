@@ -3,8 +3,8 @@ import './globals.css'
 import Navbar from '@components/nav'
 
 export const metadata = {
-    title: 'Exam',
-    description: 'Practice for your exams with multiple-choice questions.',
+    title: 'Zammad',
+    description: 'Zammad UI fr.',
 }
 
 export default function RootLayout({children}: {children: ReactNode}): JSX.Element {

@@ -1,43 +1,11 @@
 // Used for type specification when recieving requests
 import { Request, Response } from 'express'
+import { get as levenshtein } from 'fast-levenshtein'
+import dotenv from 'dotenv'
 
-// Imports the database instance, necesarry to persist operations to the database
-import db from '../db'
+dotenv.config()
 
-// Imports cache from the flow module, used to cache data
-import cache from '../flow'
-
-/**
- * Files type, used for type specification when handling files
- */
-type Files = {
-    name: string
-    content: string
-    files: Files[]
-    parent?: string
-}
-
-/**
- * CourseParam type, used for type specification when handling course parameters
- */
-type CourseParam = {
-    courseID: string
-}
-
-/**
- * UserParam type, used for type specification when handling user parameters
- */
-type UserParam = {
-    username: string
-}
-
-/**
- * GetFileProps type, used for type specification when handling file parameters
- */
-type GetFileProps = {
-    courseID: string
-    fileID: string
-}
+const { API, token } = process.env
 
 /**
  * Base information about the api if the route was not specified
@@ -62,382 +30,181 @@ export async function getHealthHandler(_: Request, res: Response) {
     res.json(200)
 }
 
-/**
- * Fetches the first 100 users on the scoreboard from Firebase
- * @param _ Request, not used
- * @param res Response, used to send the response to the user
- */
-export async function getScoreboard(_: Request, res: Response) {
-
-    /**
-     * Internal asynchronous function to fetch the scoreboard from Firebase
-     * @returns The (top 100) users on the scoreboard
-     */
-    async function fetchScoreboard() {
-        // Fetches the users from the 'User' collection in the database
-        const snapshot = await db.collection('User')
-        .orderBy('score', 'desc')
-        .limit(100)
-        .get()
+export async function getGroups(_: Request, res: Response) {
+    try {
+        const response = await fetch(`${API}/groups`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${token}`
+            }
+        })
         
-        // Constructs the scoreboard
-        return snapshot.docs.map((doc: any) => ({
-            username: doc.id,
-            score: doc.data().score,
-            solved: doc.data().solved.length,
-            time: doc.data().time
-        }))
-    }
-    
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the scoreboard from cache or database and sends it as a response
-        const scoreboard = await cache('scoreboard', fetchScoreboard)
-        res.json(scoreboard)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
-    }
-}
-
-/**
- * Fetches a list of all courses in the database
- * @param _ Request, not used
- * @param res Response, used to send the response to the user
- */
-export async function getCourses(_: Request, res: Response) {
-    /**
-     * Internal asynchronous function to fetch the courses from Firebase
-     * @returns All courses in the database
-     */
-    async function fetchCourses() {
-        // Fetches the courses from the 'Course' collection in the database
-        const coursesSnapshot = await db.collection('Course').get()
-
-        // Returns the courses with the cards and card count
-        return coursesSnapshot.docs.map((doc: any) => ({
-            id: doc.id,
-            cards: doc.data().cards,
-            count: doc.data().cards.length
-        }))
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the courses from cache or database and sends it as a response
-        const courses = await cache('courses', fetchCourses)
-        res.json(courses)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
-    }
-}
-
-/**
- * Fetches course by id
- * @param req Request
- * @param res Response
- */
-export async function getCourse(req: Request, res: Response) {
-    // Destructures the courseID from the request parameters
-    const { courseID } = req.params as CourseParam
-
-    /**
-     * Internal asynchronous function to fetch the course from Firebase
-     * @returns The specifed course from the database if found, or otherwise a string indicating the error
-     */
-    async function fetchCourse() {
-        // Fetches the course from the 'Course' collection database
-        const courseSnapshot = await db.collection('Course').doc(courseID).get()
+        if (!response.ok) {
+            const data = await response.json()
+            
+            res.status(response.status)
+            res.json(data.error)
+        }
         
-        // Returns the course if found, or otherwise a string indicating the error
-        if (!courseSnapshot.exists) {
-            return 'Course not found'
-        }
-
-        // Assigns the data to course if it exists
-        const course = courseSnapshot.data()
-
-        // Checks if course has any value, othwerwise returns a string 
-        // indicating that the course does not have any data
-        if (!course) {
-            return 'Course has no data'
-        }
-
-        // Returns the course
-        return course
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the course from cache or database and sends it as a response
-        const course = await cache(courseID, fetchCourse)
-        res.json(course)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
+        const data = await response.json()
+        res.json(data)
+    } catch (error) {
+        console.log('bf5')
+        res.status(500)
+        res.json(error)
     }
 }
 
-/**
- * Fetches the file tree for the given course ID
- * @param req Request
- * @param res Response
- */
-export async function getFile(req: Request, res: Response) {
-    // Destructures the courseID and fileID from the request parameters
-    const { courseID, fileID } = req.params as GetFileProps
-
-    /**
-     * Internal asynchronous function to fetch the file from Firebase
-     * @returns The specified file from the database if found, or otherwise a string indicating the error
-     */
-    async function fetchFile() {
-        // Fetches the file from the database
-        const fileSnapShot = await db.collection('Files').doc(`${courseID}:${fileID}`).get()
-
-        // Returns the file content if found, or otherwise a string indicating the error
-        if (!fileSnapShot.exists) {
-            return 'File not found'
-        }
-
-        // Assigns the data to file if it exists
-        const file = fileSnapShot.data()?.content
-
-        // Returns the file content if found, or an empty string if not found
-        if (!file) {
-           return ""
-        }
-
-        // Returns the file content
-        return file
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
+export async function getUsers(_: Request, res: Response) {
     try {
-        // Fetches the file from cache or database and sends it as a response
-        const file = await cache(`${courseID}:${fileID}`, fetchFile)
-        res.json(file)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
-    }
-}
-
-/**
- * Fetches all cards for the given course
- * @param req Request 
- * @param res Response
- */
-export async function getFiles(req: Request, res: Response) {
-    // Destructures the courseID from the request parameters
-    const { courseID } = req.params as CourseParam
+        const response = await fetch(`${API}/users`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${token}`
+            }
+        })
     
-    /**
-     * Internal asynchronous function to fetch the files from Firebase
-     * @returns 
-     */
-    async function fetchFiles() {
-        // Fetches the files from the 'Files' collection in the database
-        const filesSnapshot = await db.collection('Files').where('courseID', '==', courseID).get()
-
-        // Returns an empty array if no files are found
-        if (filesSnapshot.empty) {
-            return []
+        if (!response.ok) {
+            const data = await response.json()
+    
+            res.status(response.status)
+            res.json(data.error)
         }
+    
+        const data = await response.json()
+        res.json(data)
+    } catch (error) {
+        res.status(500)
+        res.json(error)
+    }
+}
 
-        // Maps the files to an array
-        const files = filesSnapshot.docs.map((doc: any) => doc.data())
+export async function getUser(req: Request, res: Response) {
+    const { userID } = req.params 
+    
+    try {
+        const response = await fetch(`${API}/users/${userID}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${token}`
+            }
+        })
+    
+        if (!response.ok) {
+            const data = await response.json()
+    
+            res.status(response.status)
+            res.json(data.error)
+        }
+    
+        const data = await response.json()
+        res.json(data)
+    } catch (error) {
+        res.json(error)
+    }
+}
 
-        // Groups files by name and initializes files by name
-        const groupedFiles: { [key: string]: any[] } = {}
-        const filesByName: { [key: string]: any } = {}
+export async function getUserByMail(req: Request, res: Response) {
+    const { mail } = req.params 
+    
+    try {
+        const response = await fetch(`${API}/users/${mail}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${token}`
+            }
+        })
+    
+        if (!response.ok) {
+            const data = await response.json()
+    
+            res.status(response.status)
+            res.json(data.error)
+        }
+    
+        const data = await response.json()
+        res.json(data)
+    } catch (error) {
+        res.json(error)
+    }
+}
 
-        // Initialize files by name and group files
-        files.forEach(file => {
-            file.files = []
-            // Inserts the file into filesByName
-            filesByName[file.name] = file
+export async function getTicket(req: Request, res: Response) {
+    const { ticketID } = req.params
 
-            // Assigns the file name to fileName, or 'no_fileName' if the file name is not defined
-            const fileName = file.name || 'no_fileName'
+    try {
+        const response = await fetch(`${API}/tickets/${ticketID}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${token}`
+            }
+        })
+    
+        if (!response.ok) {
+            const data = await response.json()
+    
+            res.status(response.status)
+            res.json(data.error)
+        }
+    
+        const data = await response.json()
+        res.json(data)
+    } catch (error) {
+        res.json(error)
+    }
+}
 
-            // Groups files by name
-            if (!groupedFiles[fileName]) {
-                groupedFiles[fileName] = []
+export async function getUserBySearch(req: Request, res: Response) {
+    const { name } = req.params;
+
+    try {
+        let page = 1
+        const perPage = 20
+        let closestUser = null
+        let closestDistance = Infinity
+
+        while (true) {
+            const response = await fetch(`${API}/users?page=${page}&per_page=${perPage}`, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Token token=${token}`
+                }
+            });
+
+            if (!response.ok) {
+                const data = await response.json();
+                res.status(response.status).json(data.error);
+                return;
             }
 
-            // Pushes the file into the groupedFiles array
-            groupedFiles[fileName].push(file)
-        })
+            const data = await response.json();
+            console.log('first page data', data)
+            const users = data.users || [];
 
-        // Nest files under their parent file
-        files.forEach(file => {
-            if (file.parent) {
-                const parentFile = filesByName[file.parent]
-                if (parentFile) {
-                    parentFile.files.push(file)
+            if (users.length === 0) {
+                break; // Exit if there are no more users
+            }
+
+            // Process each user to find the closest match
+            for (const user of users) {
+                const distance = levenshtein(user.name, name);
+                if (distance <= 3 && distance < closestDistance) {
+                    closestDistance = distance;
+                    closestUser = user
                 }
             }
-        })
 
-        // Filter out files that are nested, to avoid duplicates in the top-level array
-        Object.keys(groupedFiles).forEach(fileName => {
-            groupedFiles[fileName] = groupedFiles[fileName].filter(file => !file.parent)
-        })
-
-        // Collect all top-level files into a single array
-        const topLevelFiles: Files[] = []
-        Object.keys(groupedFiles).forEach(fileName => {
-            topLevelFiles.push(...groupedFiles[fileName])
-        })
-
-        // Returns the top-level files
-        return topLevelFiles
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the files from cache or database and sends it as a response
-        const topLevelFiles = await cache(`${courseID}_files`, fetchFiles)
-        res.json(topLevelFiles)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
-    }
-}
-
-/**
- * Fetches the user profile for the given user
- * @param req Request
- * @param res Response
- */
-export async function getUserProfile(req: Request, res: Response) {
-    // Destructures the username from the request parameters
-    const { username } = req.params as UserParam
-
-    /**
-     * Internal asynchronous function to fetch the user profile from Firebase
-     * @returns The user profile for the specified user if found, or otherwise a string indicating the error
-     */
-    async function fetchUserProfile() {
-        // Fetches the user profile from the 'User' collection in the database
-        const userProfileDoc = await db.collection('User').doc(username).get()
-
-        // Returns an error if the user profile is not found
-        if (!userProfileDoc.exists) {
-            return 'User not found'
+            page++
         }
 
-        // Assigns the data to data if it exists
-        const data = userProfileDoc.data()
-
-        // Returns an error if the user has no data
-        if (!data) {
-            return 'User has no data'
+        // Return the closest match found
+        if (closestUser) {
+            res.json(closestUser);
+        } else {
+            res.status(404).json({ error: 'No user found matching the criteria.' });
         }
-
-        // Returns the user profile
-        return {
-            name: data.firstName + ' ' + data.lastName,
-            username,
-            score: data.score,
-            solved: data.solved,
-            time: data.time,
-        }
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the user profile from cache or database and sends it as a response
-        const userProfile = await cache(`user_${username}`, fetchUserProfile)
-        res.json(userProfile)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
-    }
-}
-
-/**
- * Fetches all comments for the given course
- * @param req Request
- * @param res Response
- */
-export async function getComments(req: Request, res: Response) {
-    // Destructures the courseID from the request parameters
-    const { courseID } = req.params as CourseParam
-        
-    /**
-     * Internal asynchronous function to fetch the comments from Firebase
-     * @returns The comments for the specified course if found, or otherwise a string indicating the error
-     */
-    async function fetchComments() {
-        // Fetches the comments from the 'Comment' collection in the database
-        const commentsSnapshot = await db.collection('Comment')
-            .where('courseID', '==', courseID)
-            .get()
-
-        // Returns an empty array if no comments are found
-        const comments = commentsSnapshot.docs.map((doc: any) => doc.data())
-
-        // Groups comments by cardID and initialize replies array
-        const groupedComments: { [key: string]: any[] } = {}
-        const commentById: { [key: string]: any } = {}
-
-        // Initialize comments by cardID and group comments
-        comments.forEach(comment => {
-            comment.replies = []
-            // Inserts the comment into commentById
-            commentById[comment.id] = comment
-
-            // Assigns the cardID to cardID, or 'no_cardID' if the cardID is not defined
-            const cardID = comment.cardID || 'no_cardID'
-
-            // Groups comments by cardID
-            if (!groupedComments[cardID]) {
-                groupedComments[cardID] = []
-            }
-
-            // Pushes the comment into the groupedComments array
-            groupedComments[cardID].push(comment)
-        })
-
-        // Nests replies under their parent comments
-        comments.forEach(comment => {
-            // Assigns the parent comment to parentComment if it exists
-            if (comment.parent) {
-                const parentComment = commentById[comment.parent]
-
-                // Pushes the comment into the parentComment's replies array
-                if (parentComment) {
-                    parentComment.replies.push(comment)
-                }
-            }
-        })
-
-        // Filters out comments that are replies, to avoid duplicates in the top-level array
-        Object.keys(groupedComments).forEach(cardID => {
-            groupedComments[cardID] = groupedComments[cardID].filter(comment => !comment.parent)
-        })
-
-        // Converts grouped comments to 2D array
-        return Object.keys(groupedComments).map(cardID => groupedComments[cardID])
-    }
-
-    // Wrapped in a try-catch block to handle potential errors gracefully
-    try {
-        // Fetches the comments from cache or database and sends it as a response
-        const commentsArray = await cache(`${courseID}_comments`, fetchComments)
-        res.json(commentsArray)
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({ error: 'An error occurred while fetching users.' });
     }
 }
