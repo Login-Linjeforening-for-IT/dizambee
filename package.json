@@ -1,6 +1,6 @@
 {
-  "name": "zammad.login.no",
-  "version": "1.1.1",
+  "name": "zammad-api",
+  "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
