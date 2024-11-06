@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const { API, token } = process.env
+const { API, TOKEN } = process.env
 
 /**
  * Base information about the api if the route was not specified
@@ -35,7 +35,7 @@ export async function getGroups(_: Request, res: Response) {
         const response = await fetch(`${API}/groups`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             }
         })
         
@@ -60,7 +60,7 @@ export async function getUsers(_: Request, res: Response) {
         const response = await fetch(`${API}/users`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             }
         })
     
@@ -86,7 +86,7 @@ export async function getUser(req: Request, res: Response) {
         const response = await fetch(`${API}/users/${userID}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             }
         })
     
@@ -111,7 +111,7 @@ export async function getUserByMail(req: Request, res: Response) {
         const response = await fetch(`${API}/users/${mail}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             }
         })
     
@@ -136,7 +136,7 @@ export async function getTicket(req: Request, res: Response) {
         const response = await fetch(`${API}/tickets/${ticketID}`, {
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             }
         })
     
@@ -167,7 +167,7 @@ export async function getUserBySearch(req: Request, res: Response) {
             const response = await fetch(`${API}/users?page=${page}&per_page=${perPage}`, {
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Token token=${token}`
+                    'Authorization': `Token token=${TOKEN}`
                 }
             });
 

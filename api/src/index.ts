@@ -21,7 +21,6 @@ const app = express()
 
 // Configures the CORS rules for the application
 app.use(cors({
-    // origin: 'http://localhost:3000',
     origin: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

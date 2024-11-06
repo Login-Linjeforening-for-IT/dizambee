@@ -2,7 +2,6 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { RightIcon, MiddleIcon, LeftIcon } from './clientNav'
 import UserInfo from './userInfo'
-import ToolTips from './root/toolTips'
 import Sidebar, { SidebarButton } from './sidebar'
 
 // Displays the header
@@ -11,7 +10,6 @@ export default function Navbar() {
     return (
         <div className='flex w-full gap-4 overflow-hidden'>
             <Sidebar />
-            <ToolTips />
             {/* logo */}
             <div className='pl-2 flex gap-2 mx-auto'>
                 <Link href='/' className='grid w-[4vh] h-[4vh] relative self-center'>

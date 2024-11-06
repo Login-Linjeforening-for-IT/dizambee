@@ -2,10 +2,10 @@ import dotenv from 'dotenv'
 
 dotenv.config()
 
-const { API, token } = process.env
+const { API, TOKEN } = process.env
 
-if (!API || !token) {
+if (!API || !TOKEN) {
     console.error("Missing API url or token.")
 }
 
-export { API, token }
+export { API, TOKEN }

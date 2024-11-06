@@ -1,6 +1,6 @@
 // Used for type specification when recieving requests
 import { Request, Response } from 'express'
-import { API, token } from './env'
+import { API, TOKEN } from './env'
 
 /**
  * Posts a comment to the given course
@@ -15,10 +15,10 @@ export async function postTicket(req: Request, res: Response) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             },
             body: JSON.stringify(ticketData)
-        });
+        })
 
         if (!response.ok) {
             const data = await response.json();
@@ -46,7 +46,7 @@ export async function postUser(req: Request, res: Response) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'Authorization': `Token token=${token}`
+                'Authorization': `Token token=${TOKEN}`
             },
             body: JSON.stringify(userData)
         });

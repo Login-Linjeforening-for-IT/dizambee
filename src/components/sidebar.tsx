@@ -1,16 +1,11 @@
 'use client'
 
-import CourseListClient from "./root/coursesClient"
-
 export default function Sidebar() {
     return (
         <div className="hidden sidebar absolute grid grid-rows-9 left-0 top-0 h-full w-[200px] bg-dark">
             <div className="grid grid-cols-2 grid-rows-2 place-items-center pt-7">
                 <div/>
                 <SidebarButton />
-            </div>
-            <div className="row-span-8">
-                <CourseListClient />
             </div>
         </div>
     )
