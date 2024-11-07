@@ -7,7 +7,7 @@ import { API, TOKEN } from './env'
  * @param req Request object
  * @param res Response object
  */
-export async function postTicket(req: Request, res: Response) {
+export async function postTicket(req: Request, res: Response): Promise<any> {
     const ticketData = req.body
 
     try {
@@ -38,7 +38,7 @@ export async function postTicket(req: Request, res: Response) {
  * @param req Request object
  * @param res Response object
  */
-export async function postUser(req: Request, res: Response) {
+export async function postUser(req: Request, res: Response): Promise<any> {
     const userData = req.body
 
     try {
