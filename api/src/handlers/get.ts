@@ -7,6 +7,41 @@ dotenv.config()
 
 const { API, TOKEN } = process.env
 
+type Ticket = {
+    id: number
+    ticket_id: number
+    type_id: number
+    sender_id: number
+    from: string
+    to: string | null
+    cc: string | null
+    subject: string | null
+    message_id: string | number | null
+    message_id_md5: string
+    in_reply_to: number | null
+    content_type: string
+    references: string | null
+    body: string
+    internal: boolean
+    preferences: {
+        delivery_article_id_related: number
+        delivery_message: boolean
+        notification: boolean
+    },
+    updated_by_id: number
+    created_by_id: number
+    created_at: string
+    updated_at: string
+    origin_by_id: null
+    reply_to: string | number | null
+    attachments: string[]
+    created_by: string
+    updated_by: string
+    type: string
+    sender: string
+    time_unit: any
+}
+
 /**
  * Base information about the api if the route was not specified
  * @param _ Request, not used
@@ -199,12 +234,50 @@ export async function getUserBySearch(req: Request, res: Response) {
 
         // Return the closest match found
         if (closestUser) {
-            res.json(closestUser);
+            res.json(closestUser)
         } else {
-            res.status(404).json({ error: 'No user found matching the criteria.' });
+            res.status(404).json({ error: 'No user found matching the criteria.' })
         }
     } catch (error) {
-        console.error('Error fetching users:', error);
-        res.status(500).json({ error: 'An error occurred while fetching users.' });
+        console.error('Error fetching users:', error)
+        res.status(500).json({ error: 'An error occurred while fetching users.' })
+    }
+}
+
+// Fetches all articles (messages) for a specific Zammad ticket
+export default async function getTicketMessages(req: Request, res: Response) {
+    const { ticketID, recipient } = req.params
+
+    try {
+        const response = await fetch(`${API}/ticket_articles/by_ticket/${ticketID}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${TOKEN}`
+            }
+        })
+
+        if (!response.ok) {
+            const data = await response.json()
+            throw new Error(data)
+        }
+
+        const data = await response.json()
+
+        if (recipient && recipient !== "false") {
+            return res.json(data[0]?.to)
+        }
+
+        const result = data.reduce((acc: any, ticket: Ticket) => {
+            if (!ticket.internal) {
+                acc.push({ user: ticket.from, content: ticket.body })
+            }
+
+            return acc
+        }, [])
+
+        res.json(result)
+    } catch (error) {
+        console.log(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
+        res.status(500).json({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
     }
 }

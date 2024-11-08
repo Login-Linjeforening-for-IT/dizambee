@@ -1,65 +1,43 @@
 // Used for type specification when recieving requests
 import { Request, Response } from 'express'
+import { API, TOKEN } from './env'
 
-// Imports the invalidateCache function from the flow module, used to invalidate
-import { invalidateCache } from '../flow'
+export async function putTicket(req: Request, res: Response): Promise<any> {
+    const ticketData = req.body
+    const { ticketID, author, recipient } = req.params
+    const closeMessage = {
+        "group_id": 37,
+        "customer_id": 1,
+        "article": {
+            "body": `Closed by ${author || ''}.`,
+            "type": "email",
+            "internal": false,
+            "to": recipient || ''
+        },
+        "priority_id": 2,
+        "due_at": "2024-09-30T12:00:00Z",
+        "state": "closed"
+    }
 
-/**
- * Editing type, used for type specification when editing courses
- */
-type Editing = {
-    cards: Card[]
-    texts: string[]
-}
-
-/**
- * Card type, used for type specification when creating cards
- */
-type Card = {
-    question: string
-    alternatives: string[]
-    correct: number[]
-    source: string
-    rating: number
-    votes: number[]
-    help?: string
-    theme?: string
-}
-
-/**
- * Function used to update courses in the database
- * @param req Request object
- * @param res Response objecet
- * @returns Status code based on the outcome of the operation
- */
-export async function putCourse(req: Request, res: Response) {
-    // Wrapped in a try-catch block to handle potential errors gracefully
     try {
-        // Destructures the courseID from the request parameters
-        const { courseID } = req.params
+        const response = await fetch(`${API}/tickets/${ticketID}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${TOKEN}`
+            },
+            body: JSON.stringify(author && recipient ? closeMessage : ticketData)
+        })
 
-        // Destructures relevant variables from the request body
-        const { username, accepted, editing } = req.body as { username: string, accepted: Card[], editing: Editing }
-        
-        // Checks if required variables are defined, or otherwise returns a 400 status code
-        if (!username || accepted === undefined || editing === undefined) {
-            return res.status(400).json({ error: 'username, accepted, and editing are required' })
+        if (!response.ok) {
+            const data = await response.json();
+            return res.status(response.status).json(data.error)
         }
 
-        // Checks if the courseID is defined, or otherwise returns a 400 status code
-        if (!courseID) {
-            return res.status(400).json({ error: 'Course ID is required.' })
-        }
-
-        const courseRef = {
-            id: null
-        }
-
-        // Returns a 200 status code with the id of the updated course
-        res.status(200).json({ id: courseRef.id })
-    } catch (err) {
-        // Returns a 500 status code with the error message if an error occured
-        const error = err as Error
-        res.status(500).json({ error: error.message })
+        const data = await response.json()
+        res.status(201).json(data.id)
+    } catch (error) {
+        console.error('Error creating ticket:', error)
+        res.status(500).json({ error: 'An error occurred while creating the ticket.' })
     }
 }
