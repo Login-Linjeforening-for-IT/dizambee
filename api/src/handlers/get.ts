@@ -47,7 +47,7 @@ type Ticket = {
  * @param _ Request, not used
  * @param res Response, used to send the response to the user
  */
-export async function getIndexHandler(_: Request, res: Response) {
+export async function getIndexHandler(_: Request, res: Response): Promise<any> {
     res.json({ message: "Welcome to the API!\n\nValid endpoints are:\n\n/ - Y" +
     "ou are here, this displays info about the API\n/scoreboard - Returns the" +
     " first 100 users on the scoreboard\n/courses - Returns a list of all cou" +
@@ -61,11 +61,11 @@ export async function getIndexHandler(_: Request, res: Response) {
  * @param _ Request, not used
  * @param res Response, used to send the response to the user
  */
-export async function getHealthHandler(_: Request, res: Response) {
+export async function getHealthHandler(_: Request, res: Response): Promise<any> {
     res.json(200)
 }
 
-export async function getGroups(_: Request, res: Response) {
+export async function getGroups(_: Request, res: Response): Promise<any> {
     try {
         const response = await fetch(`${API}/groups`, {
             headers: {
@@ -90,7 +90,7 @@ export async function getGroups(_: Request, res: Response) {
     }
 }
 
-export async function getUsers(_: Request, res: Response) {
+export async function getUsers(_: Request, res: Response): Promise<any> {
     try {
         const response = await fetch(`${API}/users`, {
             headers: {
@@ -114,7 +114,7 @@ export async function getUsers(_: Request, res: Response) {
     }
 }
 
-export async function getUser(req: Request, res: Response) {
+export async function getUser(req: Request, res: Response): Promise<any> {
     const { userID } = req.params 
     
     try {
@@ -139,7 +139,7 @@ export async function getUser(req: Request, res: Response) {
     }
 }
 
-export async function getUserByMail(req: Request, res: Response) {
+export async function getUserByMail(req: Request, res: Response): Promise<any> {
     const { mail } = req.params 
     
     try {
@@ -164,7 +164,7 @@ export async function getUserByMail(req: Request, res: Response) {
     }
 }
 
-export async function getTicket(req: Request, res: Response) {
+export async function getTicket(req: Request, res: Response): Promise<any> {
     const { ticketID } = req.params
 
     try {
@@ -189,7 +189,7 @@ export async function getTicket(req: Request, res: Response) {
     }
 }
 
-export async function getUserBySearch(req: Request, res: Response) {
+export async function getUserBySearch(req: Request, res: Response): Promise<any> {
     const { name } = req.params;
 
     try {
@@ -245,7 +245,7 @@ export async function getUserBySearch(req: Request, res: Response) {
 }
 
 // Fetches all articles (messages) for a specific Zammad ticket
-export default async function getTicketMessages(req: Request, res: Response) {
+export default async function getTicketMessages(req: Request, res: Response): Promise<any> {
     const { ticketID, recipient } = req.params
 
     try {
