@@ -92,7 +92,6 @@ export async function getGroups(_: Request, res: Response): Promise<any> {
         const data = await response.json()
         res.json(data)
     } catch (error) {
-        console.log('bf5')
         res.status(500)
         res.json(error)
     }
@@ -198,7 +197,7 @@ export async function getTicket(req: Request, res: Response): Promise<any> {
 }
 
 export async function getUserBySearch(req: Request, res: Response): Promise<any> {
-    const { name } = req.params;
+    const { name } = req.params
 
     try {
         let page = 1
@@ -212,27 +211,26 @@ export async function getUserBySearch(req: Request, res: Response): Promise<any>
                     'Content-Type': 'application/json',
                     'Authorization': `Token token=${TOKEN}`
                 }
-            });
+            })
 
             if (!response.ok) {
-                const data = await response.json();
-                res.status(response.status).json(data.error);
-                return;
+                const data = await response.json()
+                res.status(response.status).json(data.error)
+                return
             }
 
-            const data = await response.json();
-            console.log('first page data', data)
-            const users = data.users || [];
+            const data = await response.json()
+            const users = data.users || []
 
             if (users.length === 0) {
-                break; // Exit if there are no more users
+                break
             }
 
             // Process each user to find the closest match
             for (const user of users) {
-                const distance = levenshtein(user.name, name);
+                const distance = levenshtein(user.name, name)
                 if (distance <= 3 && distance < closestDistance) {
-                    closestDistance = distance;
+                    closestDistance = distance
                     closestUser = user
                 }
             }
@@ -302,15 +300,15 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
         // Sends back the result
         res.json(result)
     } catch (error) {
-        console.log(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
+        console.error(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
         res.status(500).json({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
     }
 }
 
 // Fetches specified attachment
 export async function getAttachment(req: Request, res: Response): Promise<any> {
-    const { id, ticket_id, attachment_id } = req.params;
-    const url = `${id}/${ticket_id}/${attachment_id}`;
+    const { id, ticket_id, attachment_id } = req.params
+    const url = `${id}/${ticket_id}/${attachment_id}`
 
     try {
         // Fetches Zammad
@@ -319,11 +317,11 @@ export async function getAttachment(req: Request, res: Response): Promise<any> {
                 'Content-Type': 'application/json',
                 'Authorization': `Token token=${TOKEN}`
             }
-        });
+        })
 
         if (!response.ok) {
-            const data = await response.json();
-            throw new Error(data);
+            const data = await response.json()
+            throw new Error(data)
         }
 
         // Converts the stream to a base64 encoded string
@@ -332,8 +330,8 @@ export async function getAttachment(req: Request, res: Response): Promise<any> {
         const base64String = buffer.toString('base64')
         res.json({ attachment: base64String })
     } catch (error) {
-        console.log(`Error fetching Zammad attachment ${url}. Error: ${error}`);
-        res.status(500).json({ error: `An error occurred while fetching Zammad attachment ${url}. Error: ${error}` });
+        console.error(`Error fetching Zammad attachment ${url}. Error: ${error}`)
+        res.status(500).json({ error: `An error occurred while fetching Zammad attachment ${url}. Error: ${error}` })
     }
 }
 
@@ -348,7 +346,7 @@ async function checkStatus(ticketID: string) {
     
         if (!response.ok) {
             const data = await response.json()
-            console.log(`Failed to fetch: ${data}`)
+            console.error(`Failed to fetch: ${data}`)
             return false
         }
     
