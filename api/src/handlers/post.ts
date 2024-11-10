@@ -49,7 +49,7 @@ export async function postUser(req: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             },
             body: JSON.stringify(userData)
-        });
+        })
 
         if (!response.ok) {
             const data = await response.json();
