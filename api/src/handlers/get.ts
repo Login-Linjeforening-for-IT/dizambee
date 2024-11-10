@@ -249,6 +249,7 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
     const { ticketID, recipient } = req.params
 
     try {
+        // Fetches Zammad
         const response = await fetch(`${API}/ticket_articles/by_ticket/${ticketID}`, {
             headers: {
                 'Content-Type': 'application/json',
@@ -263,10 +264,19 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
 
         const data = await response.json()
 
+        // Early return if only checking recipient (Discord does not know the 
+        // recipient when trying to send a reply, so we need to give it)
         if (recipient && recipient !== "false") {
             return res.json(data[0]?.to)
         }
 
+        const isClosed = await checkStatus(ticketID)
+
+        if (isClosed) {
+            return res.json({ error: "closed" })
+        }
+
+        // Fetches all the messages from the ticket
         const result = data.reduce((acc: any, ticket: Ticket) => {
             if (!ticket.internal) {
                 acc.push({ user: ticket.from, content: ticket.body })
@@ -275,9 +285,34 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
             return acc
         }, [])
 
+        // Sends back the result
         res.json(result)
     } catch (error) {
         console.log(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
         res.status(500).json({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
+    }
+}
+
+async function checkStatus(ticketID: string) {
+    try {
+        const response = await fetch(`${API}/tickets/${ticketID}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${TOKEN}`
+            }
+        })
+    
+        if (!response.ok) {
+            const data = await response.json()
+            console.log(`Failed to fetch: ${data}`)
+            return false
+        }
+    
+        const data = await response.json()
+        
+        // state_id 4 = closed
+        return data.state_id === 4 ? true : false
+    } catch (error) {
+        console.error(`Error: ${JSON.stringify(error)}`)
     }
 }
