@@ -14,6 +14,7 @@ export async function putTicket(req: Request, res: Response): Promise<any> {
             "internal": false,
             "to": recipient || ''
         },
+        
         "priority_id": 2,
         "due_at": "2024-09-30T12:00:00Z",
         "state": "closed"

@@ -34,13 +34,21 @@ type Ticket = {
     updated_at: string
     origin_by_id: null
     reply_to: string | number | null
-    attachments: string[]
+    attachments: Attachment[]
     created_by: string
     updated_by: string
     type: string
     sender: string
     time_unit: any
 }
+
+type Attachment = {
+    id: number
+    store_file_id: number
+    filename: string
+    size: string
+    preferences: [Object]
+  }
 
 /**
  * Base information about the api if the route was not specified
@@ -279,7 +287,13 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
         // Fetches all the messages from the ticket
         const result = data.reduce((acc: any, ticket: Ticket) => {
             if (!ticket.internal) {
-                acc.push({ user: ticket.from, content: ticket.body })
+                const attachments = ticket.attachments.map(attachment => {
+                    return {
+                        url: `${ticket.ticket_id}/${ticket.id}/${attachment.id}`,
+                        name: attachment.filename
+                    }
+                })
+                acc.push({ user: ticket.from, content: ticket.body, attachments })
             }
 
             return acc
@@ -290,6 +304,36 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
     } catch (error) {
         console.log(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
         res.status(500).json({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
+    }
+}
+
+// Fetches specified attachment
+export async function getAttachment(req: Request, res: Response): Promise<any> {
+    const { id, ticket_id, attachment_id } = req.params;
+    const url = `${id}/${ticket_id}/${attachment_id}`;
+
+    try {
+        // Fetches Zammad
+        const response = await fetch(`${API}/ticket_attachment/${url}`, {
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Token token=${TOKEN}`
+            }
+        });
+
+        if (!response.ok) {
+            const data = await response.json();
+            throw new Error(data);
+        }
+
+        // Converts the stream to a base64 encoded string
+        const arrayBuffer = await response.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        const base64String = buffer.toString('base64')
+        res.json({ attachment: base64String })
+    } catch (error) {
+        console.log(`Error fetching Zammad attachment ${url}. Error: ${error}`);
+        res.status(500).json({ error: `An error occurred while fetching Zammad attachment ${url}. Error: ${error}` });
     }
 }
 

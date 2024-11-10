@@ -9,7 +9,8 @@ import getTicketMessages, {
     getUsers,
     getUser,
     getTicket,
-    getUserByMail
+    getUserByMail,
+    getAttachment
 } from './handlers/get'
 
 // Imports all POST handlers from the handlers folder
@@ -39,6 +40,7 @@ router.get('/users', getUsers)
 router.get('/users/:userID', getUser)
 router.get('/users/:mail', getUserByMail)
 router.get('/tickets/:ticketID', getTicket)
+router.get('/attachment/:id/:ticket_id/:attachment_id', getAttachment)
 router.get('/ticket/:ticketID/:recipient', getTicketMessages)
 
 // Defines all PUT routes that are available on the API
