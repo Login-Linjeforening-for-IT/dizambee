@@ -4,9 +4,6 @@ import dotenv from 'dotenv'
 // Express, used to create the server that the API runs on
 import express from 'express'
 
-// Imports body-parser to parse request bodies
-import bodyParser from 'body-parser'
-
 // Imports the router from the routes file, holds all the routes for the API
 import router from './routes'
 
@@ -29,8 +26,8 @@ app.use(cors({
 // Configures the port for the server, uses environment variable if defined, otherwise defaults to 8080
 const port = process.env.PORT || 8080
 
-// Configures the body-parser middleware to parse JSON request bodies
-app.use(bodyParser.json())
+// Parses the bodies
+app.use(express.json({ limit: '10mb' }))
 app.use('/api', router)
 
 // Catch-all route to handle undefined paths

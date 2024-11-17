@@ -14,7 +14,6 @@ export async function putTicket(req: Request, res: Response): Promise<any> {
             "internal": false,
             "to": recipient || ''
         },
-        
         "priority_id": 2,
         "due_at": "2024-09-30T12:00:00Z",
         "state": "closed"
@@ -39,6 +38,6 @@ export async function putTicket(req: Request, res: Response): Promise<any> {
         res.status(201).json(data.id)
     } catch (error) {
         console.error('Error creating ticket:', error)
-        res.status(500).json({ error: 'An error occurred while creating the ticket.' })
+        res.status(500).json({ error: 'An error occurred while creating / updating the ticket.' })
     }
 }
