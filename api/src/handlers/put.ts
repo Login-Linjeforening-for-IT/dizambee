@@ -1,10 +1,10 @@
 // Used for type specification when recieving requests
-import { Request, Response } from 'express'
+import { FastifyReply, FastifyRequest } from 'fastify'
 import { API, TOKEN } from './env'
 
-export async function putTicket(req: Request, res: Response): Promise<any> {
+export async function putTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
     const ticketData = req.body
-    const { ticketID, author, recipient } = req.params
+    const { ticketID, author, recipient } = req.params as { ticketID: string, author: string, recipient: string}
     const closeMessage = {
         "group_id": 37,
         "customer_id": 1,
@@ -30,14 +30,13 @@ export async function putTicket(req: Request, res: Response): Promise<any> {
         })
 
         if (!response.ok) {
-            const data = await response.json();
-            return res.status(response.status).json(data.error)
+            throw new Error(await response.text())
         }
 
         const data = await response.json()
-        res.status(201).json(data.id)
+        res.status(201).send(data.id)
     } catch (error) {
-        console.error('Error creating ticket:', error)
-        res.status(500).json({ error: 'An error occurred while creating / updating the ticket.' })
+        console.log(`Error creating ticket: ${error}`)
+        res.status(500).send({ error: 'An error occurred while creating / updating the ticket.' })
     }
 }

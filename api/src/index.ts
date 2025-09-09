@@ -1,44 +1,37 @@
-// Dotenv configuration
-import dotenv from 'dotenv'
+import Fastify from 'fastify'
+import apiRoutes from './routes'
+import cors from '@fastify/cors'
+import { getIndexHandler } from './handlers/get'
 
-// Express, used to create the server that the API runs on
-import express from 'express'
+// Creates the Fastify instance with logging enabled.
+const fastify = Fastify({
+    logger: true
+})
 
-// Imports the router from the routes file, holds all the routes for the API
-import router from './routes'
-
-// Configures CORS rules
-import cors from 'cors'
-
-// Configures the environment variables
-dotenv.config()
-
-// Creates the express app
-const app = express()
-
-// Configures the CORS rules for the application
-app.use(cors({
+// Registers the cors configuration, the defined methods are allowed, while all
+// others will be dropped.
+fastify.register(cors, {
     origin: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization']
-}))
-
-// Configures the port for the server, uses environment variable if defined, otherwise defaults to 8080
-const port = process.env.PORT || 8080
-
-// Parses the bodies
-app.use(express.json({ limit: '10mb' }))
-app.use('/api', router)
-
-// Catch-all route to handle undefined paths
-app.use((_: Request, res: any) => {
-    res.status(404).json({
-        error: 'Not Found',
-        message: 'The requested resource was not found on this server. Please refer to the API documentation for more information.'
-    })
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'HEAD']
 })
 
-// Starts the server on the specified port
-app.listen(port, () => {
-    console.log(`Server is running on http://localhost:${port}`)
-})
+// Prefixes all routes with `/api` and defines the root (`/`) handler
+fastify.register(apiRoutes, { prefix: '/api' })
+fastify.get('/', getIndexHandler)
+
+/**
+ * Starts the API on the defined port, listening to all interfaces. This port is
+ * only internal in the container. The external port can be changed using the
+ * `API_PORT` environment variable.
+ */
+async function start() {
+    try {
+        await fastify.listen({ port: 8080, host: '0.0.0.0' })
+    } catch (err) {
+        fastify.log.error(err)
+        process.exit(1)
+    }
+}
+
+// Starts the API
+start()

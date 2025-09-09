@@ -1,7 +1,7 @@
 // Used for type specification when recieving requests
-import { Request, Response } from 'express'
 import { get as levenshtein } from 'fast-levenshtein'
 import dotenv from 'dotenv'
+import { FastifyReply, FastifyRequest } from 'fastify'
 
 dotenv.config()
 
@@ -48,20 +48,16 @@ type Attachment = {
     filename: string
     size: string
     preferences: [Object]
-  }
+}
 
 /**
  * Base information about the api if the route was not specified
  * @param _ Request, not used
  * @param res Response, used to send the response to the user
  */
-export async function getIndexHandler(_: Request, res: Response): Promise<any> {
-    res.json({ message: "Welcome to the API!\n\nValid endpoints are:\n\n/ - Y" +
-    "ou are here, this displays info about the API\n/scoreboard - Returns the" +
-    " first 100 users on the scoreboard\n/courses - Returns a list of all cou" +
-    "rses\n/courses/:courseID/reviewed - Returns a list of all reviewed flash" + 
-    "cards\n/courses/:courseID/cards - Returns all cards, reviewed " +
-    "or not\n/user/:username - Returns all info for every user" })
+export async function getIndexHandler(req: FastifyRequest, res: FastifyReply) {
+    const routes = req.server.printRoutes({ commonPrefix: false })
+    return res.send(`Welcome to the DiZamBee API!\n\nValid routes are:\n${routes}`)
 }
 
 /**
@@ -69,11 +65,11 @@ export async function getIndexHandler(_: Request, res: Response): Promise<any> {
  * @param _ Request, not used
  * @param res Response, used to send the response to the user
  */
-export async function getHealthHandler(_: Request, res: Response): Promise<any> {
-    res.json(200)
+export async function getHealthHandler(_: FastifyRequest, res: FastifyReply): Promise<any> {
+    res.send(200)
 }
 
-export async function getGroups(_: Request, res: Response): Promise<any> {
+export async function getGroups(_: FastifyRequest, res: FastifyReply): Promise<any> {
     try {
         const response = await fetch(`${API}/groups`, {
             headers: {
@@ -81,23 +77,19 @@ export async function getGroups(_: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-        
+
         if (!response.ok) {
-            const data = await response.json()
-            
-            res.status(response.status)
-            res.json(data.error)
+            throw new Error(await response.text())
         }
-        
+
         const data = await response.json()
-        res.json(data)
+        res.send(data)
     } catch (error) {
-        res.status(500)
-        res.json(error)
+        res.status(500).send(error)
     }
 }
 
-export async function getUsers(_: Request, res: Response): Promise<any> {
+export async function getUsers(_: FastifyRequest, res: FastifyReply): Promise<any> {
     try {
         const response = await fetch(`${API}/users`, {
             headers: {
@@ -105,25 +97,22 @@ export async function getUsers(_: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-    
+
         if (!response.ok) {
-            const data = await response.json()
-    
-            res.status(response.status)
-            res.json(data.error)
+            throw new Error(await response.text())
         }
-    
+
         const data = await response.json()
-        res.json(data)
+        res.send(data)
     } catch (error) {
-        res.status(500)
-        res.json(error)
+        console.log(error)
+        res.status(500).send(error)
     }
 }
 
-export async function getUser(req: Request, res: Response): Promise<any> {
-    const { userID } = req.params 
-    
+export async function getUser(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { userID } = req.params as { userID: string }
+
     try {
         const response = await fetch(`${API}/users/${userID}`, {
             headers: {
@@ -131,24 +120,22 @@ export async function getUser(req: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-    
+
         if (!response.ok) {
-            const data = await response.json()
-    
-            res.status(response.status)
-            res.json(data.error)
+            throw new Error(await response.text())
         }
-    
+
         const data = await response.json()
-        res.json(data)
+        res.send(data)
     } catch (error) {
-        res.json(error)
+        console.log(error)
+        res.status(500).send(error)
     }
 }
 
-export async function getUserByMail(req: Request, res: Response): Promise<any> {
-    const { mail } = req.params 
-    
+export async function getUserByMail(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { mail } = req.params as { mail: string }
+
     try {
         const response = await fetch(`${API}/users/${mail}`, {
             headers: {
@@ -156,23 +143,21 @@ export async function getUserByMail(req: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-    
+
         if (!response.ok) {
-            const data = await response.json()
-    
-            res.status(response.status)
-            res.json(data.error)
+            throw new Error(await response.text())
         }
-    
+
         const data = await response.json()
-        res.json(data)
+        res.send(data)
     } catch (error) {
-        res.json(error)
+        console.log(error)
+        res.status(500).send(error)
     }
 }
 
-export async function getTicket(req: Request, res: Response): Promise<any> {
-    const { ticketID } = req.params
+export async function getTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { ticketID } = req.params as { ticketID: string }
 
     try {
         const response = await fetch(`${API}/tickets/${ticketID}`, {
@@ -181,23 +166,21 @@ export async function getTicket(req: Request, res: Response): Promise<any> {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-    
+
         if (!response.ok) {
-            const data = await response.json()
-    
-            res.status(response.status)
-            res.json(data.error)
+            throw new Error(await response.text())
         }
-    
+
         const data = await response.json()
-        res.json(data)
+        res.send(data)
     } catch (error) {
-        res.json(error)
+        console.log(error)
+        res.status(500).send(error)
     }
 }
 
-export async function getUserBySearch(req: Request, res: Response): Promise<any> {
-    const { name } = req.params
+export async function getUserBySearch(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { name } = req.params as { name: string }
 
     try {
         let page = 1
@@ -214,9 +197,7 @@ export async function getUserBySearch(req: Request, res: Response): Promise<any>
             })
 
             if (!response.ok) {
-                const data = await response.json()
-                res.status(response.status).json(data.error)
-                return
+                throw new Error(await response.text())
             }
 
             const data = await response.json()
@@ -240,19 +221,19 @@ export async function getUserBySearch(req: Request, res: Response): Promise<any>
 
         // Return the closest match found
         if (closestUser) {
-            res.json(closestUser)
+            res.send(closestUser)
         } else {
-            res.status(404).json({ error: 'No user found matching the criteria.' })
+            res.status(404).send({ error: 'No user found matching the criteria.' })
         }
     } catch (error) {
-        console.error('Error fetching users:', error)
-        res.status(500).json({ error: 'An error occurred while fetching users.' })
+        console.log(`Error fetching users: ${error}`)
+        res.status(500).send({ error: 'An error occurred while fetching users.' })
     }
 }
 
 // Fetches all articles (messages) for a specific Zammad ticket
-export default async function getTicketMessages(req: Request, res: Response): Promise<any> {
-    const { ticketID, recipient } = req.params
+export default async function getTicketMessages(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { ticketID, recipient } = req.params as { ticketID: string, recipient: string }
 
     try {
         // Fetches Zammad
@@ -273,13 +254,13 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
         // Early return if only checking recipient (Discord does not know the 
         // recipient when trying to send a reply, so we need to give it)
         if (recipient && recipient !== "false") {
-            return res.json(data[0]?.to)
+            return res.send(data[0]?.to)
         }
 
         const isClosed = await checkStatus(ticketID)
 
         if (isClosed) {
-            return res.json({ error: "closed" })
+            return res.send({ error: "closed" })
         }
 
         // Fetches all the messages from the ticket
@@ -298,16 +279,16 @@ export default async function getTicketMessages(req: Request, res: Response): Pr
         }, [])
 
         // Sends back the result
-        res.json(result)
+        res.send(result)
     } catch (error) {
-        console.error(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
-        res.status(500).json({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
+        console.log(`Error fetching zammad messages for ticket ${ticketID}. Error: ${error}`)
+        res.status(500).send({ error: `An error occured while fetching Zammad messages for ticket ${ticketID}. Error: ${error}` })
     }
 }
 
 // Fetches specified attachment
-export async function getAttachment(req: Request, res: Response): Promise<any> {
-    const { id, ticket_id, attachment_id } = req.params
+export async function getAttachment(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { id, ticket_id, attachment_id } = req.params as { id: string, ticket_id: string, attachment_id: string }
     const url = `${id}/${ticket_id}/${attachment_id}`
 
     try {
@@ -320,18 +301,17 @@ export async function getAttachment(req: Request, res: Response): Promise<any> {
         })
 
         if (!response.ok) {
-            const data = await response.json()
-            throw new Error(data)
+            throw new Error(await response.text())
         }
 
         // Converts the stream to a base64 encoded string
         const arrayBuffer = await response.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
         const base64String = buffer.toString('base64')
-        res.json({ attachment: base64String })
+        res.send({ attachment: base64String })
     } catch (error) {
-        console.error(`Error fetching Zammad attachment ${url}. Error: ${error}`)
-        res.status(500).json({ error: `An error occurred while fetching Zammad attachment ${url}. Error: ${error}` })
+        console.log(`Error fetching Zammad attachment ${url}. Error: ${error}`)
+        res.status(500).send({ error: `An error occurred while fetching Zammad attachment ${url}. Error: ${error}` })
     }
 }
 
@@ -343,18 +323,17 @@ async function checkStatus(ticketID: string) {
                 'Authorization': `Token token=${TOKEN}`
             }
         })
-    
+
         if (!response.ok) {
-            const data = await response.json()
-            console.error(`Failed to fetch: ${data}`)
-            return false
+            throw new Error(await response.text())
         }
-    
+
         const data = await response.json()
-        
+
         // state_id 4 = closed
-        return data.state_id === 4 ? true : false
+        return data.state_id === 4
     } catch (error) {
-        console.error(`Error: ${JSON.stringify(error)}`)
+        console.log(error)
+        return false
     }
 }

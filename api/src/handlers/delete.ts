@@ -1,10 +1,10 @@
 // Used for type specification when recieving requests
-import { Request, Response } from 'express'
 import { API, TOKEN } from './env'
+import { FastifyReply, FastifyRequest } from 'fastify'
 
 // Closes the ticket with the passed id
-export async function closeTicket(req: Request, res: Response): Promise<any> {
-    const { ticketID, author } = req.params
+export async function closeTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
+    const { ticketID, author } = req.params as { ticketID: string, author: string }
 
     try {
         if (!ticketID || !author) {
@@ -30,14 +30,13 @@ export async function closeTicket(req: Request, res: Response): Promise<any> {
         })
 
         if (!response.ok) {
-            const data = await response.json();
-            return res.status(response.status).json(data.error)
+            throw new Error(await response.text())
         }
 
         const data = await response.json()
-        res.status(201).json(data.id)
+        res.status(201).send(data.id)
     } catch (error) {
-        console.error('Error deleting ticket:', error)
-        res.status(500).json({ error: 'An error occurred while deleting the ticket.' })
+        console.error(`Error deleting ticket: ${error}`)
+        res.status(500).send({ error: 'An error occurred while deleting the ticket.' })
     }
 }

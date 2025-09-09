@@ -1,13 +1,13 @@
 // Used for type specification when recieving requests
-import { Request, Response } from 'express'
 import { API, TOKEN } from './env'
+import { FastifyReply, FastifyRequest } from 'fastify'
 
 /**
  * Posts a comment to the given course
  * @param req Request object
  * @param res Response object
  */
-export async function postTicket(req: Request, res: Response): Promise<any> {
+export async function postTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
     const ticketData = req.body
 
     try {
@@ -21,15 +21,14 @@ export async function postTicket(req: Request, res: Response): Promise<any> {
         })
 
         if (!response.ok) {
-            const data = await response.json();
-            return res.status(response.status).json(data.error)
+            throw new Error(await response.text())
         }
 
         const data = await response.json()
-        res.status(201).json(data.id)
+        res.status(201).send(data.id)
     } catch (error) {
-        console.error('Error creating ticket:', error)
-        res.status(500).json({ error: 'An error occurred while creating the ticket.' })
+        console.error(`Error creating ticket: ${error}`)
+        res.status(500).send({ error: 'An error occurred while creating the ticket.' })
     }
 }
 
@@ -38,7 +37,7 @@ export async function postTicket(req: Request, res: Response): Promise<any> {
  * @param req Request object
  * @param res Response object
  */
-export async function postUser(req: Request, res: Response): Promise<any> {
+export async function postUser(req: FastifyRequest, res: FastifyReply): Promise<any> {
     const userData = req.body
 
     try {
@@ -52,14 +51,14 @@ export async function postUser(req: Request, res: Response): Promise<any> {
         })
 
         if (!response.ok) {
-            const data = await response.json();
-            return res.status(response.status).json(data.error)
+            const data = await response.json()
+            return res.status(response.status).send(data.error)
         }
 
         const data = await response.json()
-        res.status(201).json(data.id)
+        res.status(201).send(data.id)
     } catch (error) {
-        console.error('Error creating customer:', error)
-        res.status(500).json({ error: 'An error occurred while creating the customer.' })
+        console.log(`Error creating customer: ${error}`)
+        res.status(500).send({ error: 'An error occurred while creating the customer.' })
     }
 }
