@@ -6,7 +6,6 @@ import getTicketMessages, {
     getUsers,
     getUser,
     getTicket,
-    getUserByMail,
     getAttachment
 } from './handlers/get'
 
@@ -40,7 +39,6 @@ export default async function apiRoutes(fastify: FastifyInstance, _: FastifyPlug
     fastify.get('/groups', getGroups)
     fastify.get('/users', getUsers)
     fastify.get('/users/:userID', getUser)
-    fastify.get('/users/:mail', getUserByMail)
     fastify.get('/tickets/:ticketID', getTicket)
     fastify.get('/attachment/:id/:ticket_id/:attachment_id', getAttachment)
     fastify.get('/ticket/:ticketID/:recipient', getTicketMessages)

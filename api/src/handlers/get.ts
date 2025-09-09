@@ -133,29 +133,6 @@ export async function getUser(req: FastifyRequest, res: FastifyReply): Promise<a
     }
 }
 
-export async function getUserByMail(req: FastifyRequest, res: FastifyReply): Promise<any> {
-    const { mail } = req.params as { mail: string }
-
-    try {
-        const response = await fetch(`${API}/users/${mail}`, {
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Token token=${TOKEN}`
-            }
-        })
-
-        if (!response.ok) {
-            throw new Error(await response.text())
-        }
-
-        const data = await response.json()
-        res.send(data)
-    } catch (error) {
-        console.log(error)
-        res.status(500).send(error)
-    }
-}
-
 export async function getTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
     const { ticketID } = req.params as { ticketID: string }
 

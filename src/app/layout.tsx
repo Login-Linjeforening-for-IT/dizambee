@@ -7,7 +7,7 @@ export const metadata = {
     description: 'Zammad UI fr.',
 }
 
-export default function RootLayout({children}: {children: ReactNode}): JSX.Element {
+export default function RootLayout({children}: {children: ReactNode}) {
 
     return (
         <html lang="en" className='h-[100vh] w-[100vw]'>

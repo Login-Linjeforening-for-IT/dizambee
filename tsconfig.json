@@ -10,7 +10,7 @@
         "noEmit": true,
         "esModuleInterop": true,
         "module": "esnext",
-        "moduleResolution": "node",
+        "moduleResolution": "bundler",
         "resolveJsonModule": true,
         "isolatedModules": true,
         "jsx": "preserve",
@@ -21,12 +21,22 @@
             }
         ],
         "paths": {
-            "@/*": ["./src/*"],
-            "@utils/*": ["./src/utils/*"],
+            "@config": ["./constants.ts"],
+            "@text/*": ["./public/text/*"],
+            "@public/*": ["./public/*"],
+            "@app/*": ["./src/app/*"],
             "@components/*": ["./src/components/*"],
+            "@utils/*": ["./src/utils/*"],
+            "@/*": ["./src/*"],
             "@parent/*": ["./*"]
         }
     },
-    "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+    "include": [
+        "next-env.d.ts", 
+        "**/*.ts", 
+        "**/*.tsx", 
+        ".next/types/**/*.ts", 
+        "src/app/login/page.ts"
+    ],
     "exclude": ["node_modules"]
 }

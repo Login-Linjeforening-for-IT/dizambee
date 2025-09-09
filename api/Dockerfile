@@ -16,5 +16,8 @@ RUN npm install
 # Copies the rest of the API source code
 COPY . .
 
+# Builds the distributable
+RUN npm run build
+
 # Exposes port 8080
 EXPOSE 8080
