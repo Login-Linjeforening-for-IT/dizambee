@@ -8,7 +8,7 @@ services:
       - "8300:3000"
     command: npm start
     depends_on:
-      - backend
+      - dizambee_api
     environment:
       - API_URL=http://backend:8080/api
 
