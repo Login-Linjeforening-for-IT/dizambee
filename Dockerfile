@@ -12,7 +12,7 @@ COPY package*.json ./
 
 # Installs dependencies
 RUN npm install
-RUN npm install fastify @fastify/cors dotenv cors @types/cors redis
+RUN npm install fastify @fastify/cors dotenv cors @types/cors
 
 # Copies source code
 COPY . .
