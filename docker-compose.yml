@@ -1,6 +1,6 @@
 services:
-  frontend:
-    container_name: frontend
+  dizambee_ui:
+    container_name: dizambee_ui
     build:
       context: .
       dockerfile: Dockerfile
@@ -12,8 +12,8 @@ services:
     environment:
       - API_URL=http://backend:8080/api
 
-  backend:
-    container_name: backend
+  dizambee_api:
+    container_name: dizambee_api
     build:
       context: ./api
       dockerfile: Dockerfile
