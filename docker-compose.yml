@@ -1,6 +1,7 @@
 services:
   dizambee_ui:
     container_name: dizambee_ui
+    restart: always
     build:
       context: .
       dockerfile: Dockerfile
@@ -14,10 +15,10 @@ services:
 
   dizambee_api:
     container_name: dizambee_api
+    restart: always
     build:
       context: ./api
       dockerfile: Dockerfile
     ports:
       - "8301:8080"
     command: npm start
-
