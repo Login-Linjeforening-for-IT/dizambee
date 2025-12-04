@@ -1,19 +1,4 @@
 services:
-  dizambee_ui:
-    container_name: dizambee_ui
-    image: dizambee_ui
-    restart: always
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8300:3000"
-    command: npm start
-    depends_on:
-      - dizambee_api
-    environment:
-      - API_URL=http://backend:8080/api
-
   dizambee_api:
     container_name: dizambee_api
     image: dizambee_api
@@ -22,5 +7,5 @@ services:
       context: ./api
       dockerfile: Dockerfile
     ports:
-      - "8301:8080"
+      - "8300:8080"
     command: npm start

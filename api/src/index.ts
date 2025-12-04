@@ -1,7 +1,7 @@
 import Fastify from 'fastify'
-import apiRoutes from './routes'
+import apiRoutes from './routes.ts'
 import cors from '@fastify/cors'
-import { getIndexHandler } from './handlers/get'
+import { getIndexHandler } from './handlers/get.ts'
 
 // Creates the Fastify instance with logging enabled.
 const fastify = Fastify({

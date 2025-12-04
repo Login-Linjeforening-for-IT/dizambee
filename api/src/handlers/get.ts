@@ -1,8 +1,8 @@
-// Used for type specification when recieving requests
-import { get as levenshtein } from 'fast-levenshtein'
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import pkg from 'fast-levenshtein'
 import dotenv from 'dotenv'
-import { FastifyReply, FastifyRequest } from 'fastify'
 
+const { get: levenshtein } = pkg
 dotenv.config()
 
 const { API, TOKEN } = process.env

@@ -7,24 +7,24 @@ import getTicketMessages, {
     getUser,
     getTicket,
     getAttachment
-} from './handlers/get'
+} from './handlers/get.ts'
 
 // Imports all POST handlers from the handlers folder
 import { 
     postTicket,
     postUser,
-} from './handlers/post'
+} from './handlers/post.ts'
 
 // Imports all PUT handlers from the handlers folder
 import { 
     putTicket, 
-} from './handlers/put'
+} from './handlers/put.ts'
 
 // Imports all DELETE handlers from the handlers folder
 import {
     closeTicket,
-} from './handlers/delete'
-import { FastifyInstance, FastifyPluginOptions } from 'fastify'
+} from './handlers/delete.ts'
+import type { FastifyInstance, FastifyPluginOptions } from 'fastify'
 
 /**
  * Defines the routes available in the API.

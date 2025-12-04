@@ -1,6 +1,5 @@
-// Used for type specification when recieving requests
-import { API, TOKEN } from './env'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import { API, TOKEN } from './env.ts'
 
 // Closes the ticket with the passed id
 export async function closeTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {

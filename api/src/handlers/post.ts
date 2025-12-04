@@ -1,6 +1,5 @@
-// Used for type specification when recieving requests
-import { API, TOKEN } from './env'
-import { FastifyReply, FastifyRequest } from 'fastify'
+import { API, TOKEN } from './env.ts'
+import type { FastifyReply, FastifyRequest } from 'fastify'
 
 /**
  * Posts a comment to the given course

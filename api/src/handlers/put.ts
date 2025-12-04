@@ -1,6 +1,5 @@
-// Used for type specification when recieving requests
-import { FastifyReply, FastifyRequest } from 'fastify'
-import { API, TOKEN } from './env'
+import type { FastifyReply, FastifyRequest } from 'fastify'
+import { API, TOKEN } from './env.ts'
 
 export async function putTicket(req: FastifyRequest, res: FastifyReply): Promise<any> {
     const ticketData = req.body
